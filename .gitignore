@@ -1,0 +1,9 @@
+/*
+!go.mod
+!main.go
+!Makefile
+!api/
+!middleware/
+!model/
+!storage/
+!.gitignore
