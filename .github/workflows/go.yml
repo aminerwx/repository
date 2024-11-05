@@ -1,4 +1,4 @@
-name: testing
+name: go-testing
 
 on: push
 
@@ -9,5 +9,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
-      - name: Display go version
-        run: go version
+        with:
+          go-version: "stable"
+      - name: Run repo tests
+        run: go test ./... -v
