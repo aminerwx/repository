@@ -6,4 +6,5 @@
 !middleware/
 !model/
 !storage/
+!.github/
 !.gitignore

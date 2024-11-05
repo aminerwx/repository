@@ -102,28 +102,4 @@ func TestGetAccountHandler(t *testing.T) {
 			t.Errorf("[%v] got: %v %v, want: %v %v", i, jsonResponse, len(jsonResponse), test.payload, len(test.payload))
 		}
 	}
-
-	// runAccountHandlerTests(t, http.MethodGet, "/accounts", srv.GetAccountHandler, "GetAccountHandler", createAccountTests)
 }
-
-//func TestCreateAccountHandler(t *testing.T) {
-//	// TODO: write test run for all cases (empty json, valid son, invalid json)
-//
-//	store := storage.NewMockStorage()
-//	// Payload
-//	account := `{"id":1,"username":"account_1","password":"pwd1"}`
-//	body, _ := json.Marshal(account)
-//
-//	srv := api.NewServer(store, ":3333")
-//
-//	// Create HTTP Post request with payload as body
-//	req := httptest.NewRequest(http.MethodPost, "/accounts", bytes.NewBuffer(body))
-//	w := httptest.NewRecorder()
-//
-//	handler := http.HandlerFunc(srv.CreateAccountHandler)
-//	handler.ServeHTTP(w, req)
-//
-//	if w.Code != http.StatusBadRequest {
-//		t.Errorf("got: %v, want: %v", w.Code, http.StatusBadRequest)
-//	}
-//}
