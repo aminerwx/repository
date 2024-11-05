@@ -1,15 +1,48 @@
-name: go-testing
+name: Go
 
-on: push
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
 
 jobs:
-  testing:
+  run:
     name: test code base
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      matrix:
+        go: ["stable", "oldstable"]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+
+      - name: Go setup
+        uses: actions/setup-go@v5
         with:
-          go-version: "stable"
+          go-version: ${{ matrix.go }}
+          check-latest: true
+
+      - name: Format
+        run: gofmt -s -w . && git diff --exit-code
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Tidy
+        run: go mod tidy
+
+      - name: Mod download
+        run: go mod download
+
+      - name: Mod verify
+        run: go mod verify
+
+      - name: Generate
+        run: go generate ./... && git diff --exit-code
+
+      - name: Build
+        run: go build -o /dev/null ./...
+
       - name: Run repo tests
         run: go test ./... -v
