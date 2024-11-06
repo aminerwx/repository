@@ -9,103 +9,135 @@ import (
 	"github.com/aminerwx/repository/model"
 )
 
+type Response struct {
+	Message    string          `json:"message"`
+	StatusCode int             `json:"status_code"`
+	Data       []model.Account `json:"data"`
+}
+
+var (
+	StatusBadRequestJSON = Response{
+		Message:    "bad request",
+		StatusCode: http.StatusBadRequest,
+	}
+	StatusConflictJSON = Response{
+		Message:    "already exist",
+		StatusCode: http.StatusConflict,
+	}
+	StatusNotFoundJSON = Response{
+		Message:    "not found",
+		StatusCode: http.StatusNotFound,
+	}
+	StatusOkJSON = Response{
+		Message:    "success",
+		StatusCode: http.StatusOK,
+	}
+	StatusCreatedJSON = Response{
+		Message:    "success",
+		StatusCode: http.StatusCreated,
+	}
+)
+
 func hasEmptyField(account model.Account) bool {
 	return account.ID == 0 || account.Username == "" || account.Password == ""
 }
 
 func (s *Server) CreateAccountHandler(w http.ResponseWriter, r *http.Request) {
 	var account model.Account
-	// json.NewDecoder(r.Body).Decode(&account)
 	body, _ := io.ReadAll(r.Body)
 	w.Header().Set("content-type", "application/json")
 
 	err := json.Unmarshal(body, &account)
 	if err != nil || account == (model.Account{}) || hasEmptyField(account) {
-		response := map[string]string{"message": "bad request.", "status": "error"}
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(response)
+		w.WriteHeader(StatusBadRequestJSON.StatusCode)
+		json.NewEncoder(w).Encode(StatusBadRequestJSON)
 		return
 	}
 
 	err = s.store.CreateAccount(account)
 	if err != nil {
-		response := map[string]string{"message": "bad request.", "status": "error"}
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(response)
+		w.WriteHeader(http.StatusConflict)
+		json.NewEncoder(w).Encode(StatusConflictJSON)
 		return
 	}
-	response := map[string]string{"message": "account created.", "status": "ok"}
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(response)
+	w.WriteHeader(StatusCreatedJSON.StatusCode)
+	json.NewEncoder(w).Encode(StatusCreatedJSON)
 }
 
 func (s *Server) GetAccountHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("content-type", "application/json")
 	id, err := strconv.Atoi(r.PathValue("id"))
-
 	if id == 0 {
-		response := `{"message": "invalid request", "status": 400}`
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(response)
+		w.WriteHeader(StatusBadRequestJSON.StatusCode)
+		json.NewEncoder(w).Encode(StatusBadRequestJSON)
 		return
 	}
 
 	if err != nil {
-		response := `{"message": "invalid request", "status": 400}`
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(response)
+		w.WriteHeader(StatusBadRequestJSON.StatusCode)
+		json.NewEncoder(w).Encode(StatusBadRequestJSON)
 		return
 	}
 	account, err := s.store.GetAccount(id)
 	if err != nil {
-		response := `{"message": "not found", "status": 404}`
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(response)
+		w.WriteHeader(StatusNotFoundJSON.StatusCode)
+		json.NewEncoder(w).Encode(StatusNotFoundJSON)
 		return
 	}
-	w.Header().Set("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(account)
+	w.WriteHeader(StatusOkJSON.StatusCode)
+	StatusOkJSON.Data = []model.Account{account}
+	json.NewEncoder(w).Encode(StatusOkJSON)
 }
 
 func (s *Server) ListAccountsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("content-type", "application/json")
 	accounts, err := s.store.ListAccounts()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		w.WriteHeader(StatusNotFoundJSON.StatusCode)
+		json.NewEncoder(w).Encode(StatusNotFoundJSON)
 		return
 	}
-	w.Header().Set("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(accounts)
+	w.WriteHeader(StatusOkJSON.StatusCode)
+	StatusOkJSON.Data = accounts
+	json.NewEncoder(w).Encode(StatusOkJSON)
 }
 
 func (s *Server) UpdateAccountHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("content-type", "application/json")
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(StatusBadRequestJSON.StatusCode)
+		json.NewEncoder(w).Encode(StatusBadRequestJSON)
 		return
 	}
 	var newAccount model.Account
 	json.NewDecoder(r.Body).Decode(&newAccount)
 	err = s.store.UpdateAccount(id, newAccount)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		w.WriteHeader(StatusNotFoundJSON.StatusCode)
+		json.NewEncoder(w).Encode(StatusNotFoundJSON)
 		return
 	}
-	w.Header().Set("content-type", "application/json")
-	w.WriteHeader(http.StatusCreated)
+	w.WriteHeader(StatusOkJSON.StatusCode)
+	StatusOkJSON.Data = []model.Account{}
+	json.NewEncoder(w).Encode(StatusOkJSON)
 }
 
 func (s *Server) DeleteAccountHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("content-type", "application/json")
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(StatusBadRequestJSON.StatusCode)
+		json.NewEncoder(w).Encode(StatusBadRequestJSON)
 		return
 	}
 	err = s.store.DeleteAccount(id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		w.WriteHeader(StatusNotFoundJSON.StatusCode)
+		json.NewEncoder(w).Encode(StatusNotFoundJSON)
 		return
 	}
-	w.Header().Set("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(StatusOkJSON.StatusCode)
+	StatusOkJSON.Data = []model.Account{}
+	json.NewEncoder(w).Encode(StatusOkJSON)
 }

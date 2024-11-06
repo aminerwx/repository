@@ -24,6 +24,9 @@ func (m *MockStorage) GetAccount(id int) (model.Account, error) {
 }
 
 func (m *MockStorage) ListAccounts() ([]model.Account, error) {
+	if len(m.Accounts) == 0 {
+		return nil, errors.New("empty accounts")
+	}
 	return m.Accounts, nil
 }
 

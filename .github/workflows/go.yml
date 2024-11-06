@@ -13,7 +13,9 @@ jobs:
     timeout-minutes: 5
     strategy:
       matrix:
-        go: ["stable", "oldstable"]
+        # seperate code base into two versions
+        go: ["stable"]
+        # go: ["stable", "oldstable"]
     steps:
       - uses: actions/checkout@v4
 

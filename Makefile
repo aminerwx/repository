@@ -8,7 +8,7 @@ clean:
 	@rm bin/repository
 
 test:
-	go test ./... -v -coverprofile=./cover.out
+	go test ./... -coverprofile=./cover.out
 
 cover: test
 	@go tool cover -html=./cover.out

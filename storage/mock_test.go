@@ -46,8 +46,26 @@ func TestMockListAccounts(t *testing.T) {
 	store := storage.NewMockStorage()
 	t.Run("should return empty list of accounts", func(t *testing.T) {
 		accounts, err := store.ListAccounts()
-		if len(accounts) != 0 || err != nil {
+		if len(accounts) > 0 {
 			t.Errorf("got: %v, want: %v", len(accounts), 0)
+		}
+		if err == nil {
+			t.Errorf("got: %v, want: %v", err.Error(), nil)
+		}
+	})
+	t.Run("should return list of accounts", func(t *testing.T) {
+		acc1 := model.Account{ID: 1, Username: "user1", Password: "pwd1"}
+		acc2 := model.Account{ID: 2, Username: "user2", Password: "pwd2"}
+
+		store.CreateAccount(acc1)
+		store.CreateAccount(acc2)
+
+		accounts, err := store.ListAccounts()
+		if len(accounts) == 0 {
+			t.Errorf("got: %v, want: %v", len(accounts), 0)
+		}
+		if err != nil {
+			t.Errorf("got: %v, want: %v", err.Error(), nil)
 		}
 	})
 }
