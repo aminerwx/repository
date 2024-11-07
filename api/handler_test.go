@@ -94,7 +94,7 @@ func TestGetAccountHandler(t *testing.T) {
 		want api.Response
 	}{
 		{"1/l", StatusBadRequestJSON},
-		{"/l", StatusBadRequestJSON},
+		{"@#", StatusBadRequestJSON},
 		{"0", StatusBadRequestJSON},
 		{"99", StatusNotFoundJSON},
 		{"2", api.Response{StatusCode: 200, Message: "success", Data: []model.Account{
@@ -190,23 +190,40 @@ func TestDeleteAccountHandler(t *testing.T) {
 }
 
 func TestListAccountsHandler(t *testing.T) {
-	store := storage.NewMockStorage()
-	srv := api.NewServer(store, ":3333")
-	store.CreateAccount(model.Account{ID: 1, Username: "account_1", Password: "pwd1"})
-	store.CreateAccount(model.Account{ID: 2, Username: "account_2", Password: "pwd2"})
-	want := StatusOkJSON
-	want.Data = []model.Account{
-		{ID: 1, Username: "account_1", Password: "pwd1"},
-		{ID: 2, Username: "account_2", Password: "pwd2"},
-	}
-	rr := httptest.NewRequest(http.MethodGet, "/accounts", nil)
-	w := httptest.NewRecorder()
-	w.Header().Set("content-type", "application/json")
-	handler := http.HandlerFunc(srv.ListAccountsHandler)
-	handler.ServeHTTP(w, rr)
-	var res api.Response
-	json.NewDecoder(w.Body).Decode(&res)
-	if !reflect.DeepEqual(res, want) {
-		t.Errorf("got: %v, want: %v", res, want)
-	}
+	t.Run("should return populated list", func(t *testing.T) {
+		store := storage.NewMockStorage()
+		srv := api.NewServer(store, ":3333")
+		store.CreateAccount(model.Account{ID: 1, Username: "account_1", Password: "pwd1"})
+		store.CreateAccount(model.Account{ID: 2, Username: "account_2", Password: "pwd2"})
+		want := StatusOkJSON
+		want.Data = []model.Account{
+			{ID: 1, Username: "account_1", Password: "pwd1"},
+			{ID: 2, Username: "account_2", Password: "pwd2"},
+		}
+		rr := httptest.NewRequest(http.MethodGet, "/accounts", nil)
+		w := httptest.NewRecorder()
+		w.Header().Set("content-type", "application/json")
+		handler := http.HandlerFunc(srv.ListAccountsHandler)
+		handler.ServeHTTP(w, rr)
+		var res api.Response
+		json.NewDecoder(w.Body).Decode(&res)
+		if !reflect.DeepEqual(res, want) {
+			t.Errorf("got: %v, want: %v", res, want)
+		}
+	})
+	t.Run("should return empty list", func(t *testing.T) {
+		store := storage.NewMockStorage()
+		srv := api.NewServer(store, ":3333")
+		want := StatusNotFoundJSON
+		rr := httptest.NewRequest(http.MethodGet, "/accounts", nil)
+		w := httptest.NewRecorder()
+		w.Header().Set("content-type", "application/json")
+		handler := http.HandlerFunc(srv.ListAccountsHandler)
+		handler.ServeHTTP(w, rr)
+		var res api.Response
+		json.NewDecoder(w.Body).Decode(&res)
+		if !reflect.DeepEqual(res, want) {
+			t.Errorf("got: %v, want: %v", res, want)
+		}
+	})
 }

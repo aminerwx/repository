@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"time"
@@ -16,6 +17,7 @@ func NewLogger(handlerToWrap http.Handler) *Logger {
 
 func (l *Logger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
-	l.handler.ServeHTTP(w, r)
+	ctx := context.WithValue(context.Background(), "reqID", "1234")
+	l.handler.ServeHTTP(w, r.WithContext(ctx))
 	log.Printf("%s %s %v", r.Method, r.URL.Path, time.Since(start))
 }

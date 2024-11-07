@@ -67,17 +67,12 @@ func (s *Server) CreateAccountHandler(w http.ResponseWriter, r *http.Request) {
 func (s *Server) GetAccountHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	id, err := strconv.Atoi(r.PathValue("id"))
-	if id == 0 {
+	if id == 0 || err != nil {
 		w.WriteHeader(StatusBadRequestJSON.StatusCode)
 		json.NewEncoder(w).Encode(StatusBadRequestJSON)
 		return
 	}
 
-	if err != nil {
-		w.WriteHeader(StatusBadRequestJSON.StatusCode)
-		json.NewEncoder(w).Encode(StatusBadRequestJSON)
-		return
-	}
 	account, err := s.store.GetAccount(id)
 	if err != nil {
 		w.WriteHeader(StatusNotFoundJSON.StatusCode)
